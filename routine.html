@@ -17,7 +17,7 @@ body {
 }
 
 .container {
-    max-width: 800px;
+    max-width: 1000px;
     margin: auto;
     background: white;
     padding: 25px;
@@ -85,6 +85,7 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    table-layout: fixed;
 }
 
 th {
@@ -97,6 +98,12 @@ td {
     border: 1px solid #ccc;
     text-align: center;
     padding: 13px 8px;
+}
+
+.person-title {
+    background: #f1f1f1;
+    font-weight: bold;
+    width: 100px;
 }
 
 .number {
@@ -116,7 +123,7 @@ td {
     font-weight: bold;
 }
 
-.holiday-row {
+.holiday-cell {
     background: #ffecec;
     color: #e74c3c;
     font-weight: bold;
@@ -149,6 +156,10 @@ td {
         font-size: 15px;
     }
 
+    .person-title {
+        width: 70px;
+    }
+
 }
 
 </style>
@@ -162,7 +173,7 @@ td {
 <h1>🍱 抬餐人員排班表</h1>
 
 <div class="subtitle">
-每天 4 人｜自動跳過 21、27、28 號
+每天 2 人｜自動跳過 21、27、28 號
 </div>
 
 <h2>① 星期一第一位</h2>
@@ -211,11 +222,19 @@ td {
 <thead>
 
 <tr>
-<th>星期</th>
-<th>第 1 人</th>
-<th>第 2 人</th>
-<th>第 3 人</th>
-<th>第 4 人</th>
+
+<th>人員</th>
+
+<th>星期一</th>
+
+<th>星期二</th>
+
+<th>星期三</th>
+
+<th>星期四</th>
+
+<th>星期五</th>
+
 </tr>
 
 </thead>
@@ -321,18 +340,10 @@ function makeSchedule() {
 
 
     /*
-       取得表格
+       儲存每天的兩位人員
     */
 
-    let result =
-        document.getElementById("result");
-
-
-    /*
-       清除原本的表格
-    */
-
-    result.innerHTML = "";
+    let schedule = [];
 
 
     /*
@@ -340,8 +351,6 @@ function makeSchedule() {
     */
 
     for (let day of days) {
-
-        let dayName = day[0];
 
         let checkboxID = day[1];
 
@@ -356,36 +365,20 @@ function makeSchedule() {
             ).checked;
 
 
-        let row =
-            document.createElement("tr");
-
-
-        /* ==========================
+        /*
            放假
-        ========================== */
+        */
 
         if (holiday) {
 
-            row.className =
-                "holiday-row";
-
-
-            row.innerHTML =
-
-                "<td>" +
-                dayName +
-                "</td>" +
-
-                "<td colspan='4'>" +
-                "🎉 放假" +
-                "</td>";
+            schedule.push(null);
 
         }
 
 
-        /* ==========================
+        /*
            正常上課
-        ========================== */
+        */
 
         else {
 
@@ -393,19 +386,15 @@ function makeSchedule() {
 
 
             /*
-               每天4人
+               每天2人
             */
 
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < 2; i++) {
 
                 numbers.push(
                     people[index]
                 );
 
-
-                /*
-                   下一個號碼
-                */
 
                 index++;
 
@@ -425,40 +414,103 @@ function makeSchedule() {
 
             }
 
+            schedule.push(numbers);
+
+        }
+
+    }
+
+
+    /*
+       取得表格
+    */
+
+    let result =
+        document.getElementById("result");
+
+
+    /*
+       清除原本表格
+    */
+
+    result.innerHTML = "";
+
+
+    /*
+       建立第一人、第二人兩列
+    */
+
+    for (let person = 0; person < 2; person++) {
+
+        let row =
+            document.createElement("tr");
+
+
+        /*
+           左側顯示第一人 / 第二人
+        */
+
+        let title =
+            document.createElement("td");
+
+        title.className =
+            "person-title";
+
+        title.textContent =
+            person === 0
+                ? "第一人"
+                : "第二人";
+
+        row.appendChild(title);
+
+
+        /*
+           星期一～星期五
+        */
+
+        for (let day = 0; day < 5; day++) {
+
+            let cell =
+                document.createElement("td");
+
 
             /*
-               放入表格
+               放假
             */
 
-            row.innerHTML =
+            if (schedule[day] === null) {
 
-                "<td><b>" +
-                dayName +
-                "</b></td>" +
+                if (person === 0) {
 
-                "<td>" +
-                "<span class='number'>" +
-                numbers[0] +
-                "</span>" +
-                "</td>" +
+                    cell.className =
+                        "holiday-cell";
 
-                "<td>" +
-                "<span class='number'>" +
-                numbers[1] +
-                "</span>" +
-                "</td>" +
+                    cell.rowSpan = 2;
 
-                "<td>" +
-                "<span class='number'>" +
-                numbers[2] +
-                "</span>" +
-                "</td>" +
+                    cell.textContent =
+                        "🎉 放假";
 
-                "<td>" +
-                "<span class='number'>" +
-                numbers[3] +
-                "</span>" +
-                "</td>";
+                    row.appendChild(cell);
+
+                }
+
+            }
+
+
+            /*
+               正常排班
+            */
+
+            else {
+
+                cell.innerHTML =
+                    "<span class='number'>" +
+                    schedule[day][person] +
+                    "</span>";
+
+                row.appendChild(cell);
+
+            }
 
         }
 
